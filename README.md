@@ -23,4 +23,4 @@ Specular Probes Disabled
 ![result2-off](GithubContent/result2-off.png)
 
 ### Credits
-Inspired by [Zulubo's](https://github.com/zulubo/SpecularProbes) implementation, however I opted for my own and went for a more simplified but global solution that also can do area lights as well.
+I was inspired by [Zulubo's](https://github.com/zulubo/SpecularProbes) implementation, however I opted for my own and went for a more simplified but global solution that also can do area lights as well.
