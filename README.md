@@ -10,16 +10,16 @@ This is a script that attempts to alleviate that by spawning an emissive object 
 
 ## Results
 
-Enabled
+Specular Probes Enabled
 ![result1-on](GithubContent/result1-on.png)
 
-Disabled
+Specular Probes Disabled
 ![result1-off](GithubContent/result1-off.png)
 
-Enabled
+Specular Probes Enabled
 ![result2-on](GithubContent/result2-on.png)
 
-Disabled
+Specular Probes Disabled
 ![result2-off](GithubContent/result2-off.png)
 
 ### Credits
