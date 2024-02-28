@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine.Rendering;
 
 namespace CustomEditorTools
 {
@@ -277,13 +278,24 @@ namespace CustomEditorTools
         /// <returns></returns>
         private static Material GetLightMaterial(Color color, float intensity)
         {
-            Material sphereMaterial = new Material(Shader.Find("Standard"));
+			#if UNITY_2018_1_OR_NEWER
+			// URP support
+			if (GraphicsSettings.currentRenderPipeline != null)
+			{
+				Material sphereMaterial = new Material(GraphicsSettings.currentRenderPipeline.defaultParticleMaterial.shader);
+				return sphereMaterial;
+			}
+			else
+			#endif
+			{
+				Material sphereMaterial = new Material(Shader.Find("Standard"));
 
-            sphereMaterial.EnableKeyword("_EMISSION");
-            sphereMaterial.SetColor("_Color", color);
-            sphereMaterial.SetColor("_EmissionColor", color * intensity);
+				sphereMaterial.EnableKeyword("_EMISSION");
+				sphereMaterial.SetColor("_Color", color);
+				sphereMaterial.SetColor("_EmissionColor", color * intensity);
 
-            return sphereMaterial;
+				return sphereMaterial;
+			}
         }
 
         /// <summary>
