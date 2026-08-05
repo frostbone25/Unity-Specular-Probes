@@ -282,7 +282,13 @@ namespace CustomEditorTools
 			// URP support
 			if (GraphicsSettings.currentRenderPipeline != null)
 			{
-				Material sphereMaterial = new Material(GraphicsSettings.currentRenderPipeline.defaultParticleMaterial.shader);
+				Material sphereMaterial = new Material(GraphicsSettings.currentRenderPipeline.defaultShader);
+                
+                // strings are the same for URP
+                sphereMaterial.EnableKeyword("_EMISSION");
+                sphereMaterial.SetColor("_Color", color);
+                sphereMaterial.SetColor("_EmissionColor", color * intensity);
+                
 				return sphereMaterial;
 			}
 			else
