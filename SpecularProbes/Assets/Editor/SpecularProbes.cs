@@ -180,32 +180,61 @@ namespace CustomEditorTools
         private void BakeReflectionProbes()
         {
             //get all reflection probes in the scene
-            ReflectionProbe[] probes = FindObjectsOfType<ReflectionProbe>();
+            var probes = FindObjectsByType<ReflectionProbe>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
             //get the current active scene and its path on the disk.
-            UnityEngine.SceneManagement.Scene activeScene = EditorSceneManager.GetActiveScene();
-            string sceneFilePath = activeScene.path;
-            string sceneFolderPath = sceneFilePath.Remove(sceneFilePath.Length - ".unity".Length);
+            var activeScene = SceneManager.GetActiveScene();
+            var sceneFilePath = activeScene.path;
+            var sceneFolderPath = sceneFilePath.Remove(sceneFilePath.Length - ".unity".Length);
 
             //make sure the scene is saved or valid before we continue
-            if (activeScene.IsValid() == false || string.IsNullOrEmpty(activeScene.path))
+            if (activeScene.IsValid() == false || string.IsNullOrEmpty(sceneFilePath))
             {
                 string message = "Scene is not valid! Be sure to save the scene before baking!";
                 EditorUtility.DisplayDialog("Error", message, "OK");
                 return; //dont continue
             }
 
-            //iterate through all reflection probes in the scene
-            for(int i = 0; i < probes.Length; i++)
+            //ensure the folder exists on disk before writing files to it
+            if (!Directory.Exists(sceneFolderPath))
             {
-                //bake each reflection probe with a progress bar
-                EditorUtility.DisplayProgressBar("Baking Specular Probes", string.Format("Baking {0}...", probes[i].name), i / probes.Length);
-                string reflectionProbePath = sceneFolderPath + "/" + probes[i].name + ".exr";
-                Lightmapping.BakeReflectionProbe(probes[i], reflectionProbePath);
+                Directory.CreateDirectory(sceneFolderPath);
+                AssetDatabase.Refresh();
             }
 
+            //iterate through all reflection probes in the scene
+            for (var i = 0; i < probes.Length; i++)
+            {
+                var probe = probes[i];
+
+                var progress = (float)i / probes.Length;
+                EditorUtility.DisplayProgressBar("Baking Specular Probes", $"Baking {probe.name}...", progress);
+
+                var reflectionProbePath = sceneFolderPath + "/" + probe.name + ".exr";
+                
+                //make sure texture is saved as cubemap
+                Lightmapping.BakeReflectionProbe(probe, reflectionProbePath);
+                AssetDatabase.ImportAsset(reflectionProbePath, ImportAssetOptions.ForceUpdate);
+                var importer = AssetImporter.GetAtPath(reflectionProbePath) as TextureImporter;
+                if (importer)
+                {
+                    importer.textureShape = TextureImporterShape.TextureCube;
+                    importer.SaveAndReimport();
+                }
+                
+                //assign custom cubemap
+                var bakedCubemap = AssetDatabase.LoadAssetAtPath<Texture>(reflectionProbePath);
+                if (bakedCubemap)
+                {
+                    probe.mode = ReflectionProbeMode.Custom;
+                    probe.customBakedTexture = bakedCubemap;
+                    EditorUtility.SetDirty(probe);
+                }
+            }
+            
             //get rid of the progress bar because we are done.
             EditorUtility.ClearProgressBar();
+            EditorSceneManager.MarkSceneDirty(activeScene);
         }
 
         /// <summary>
